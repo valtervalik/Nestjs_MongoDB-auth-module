@@ -1,56 +1,37 @@
-import {
-  ConflictException,
-  Inject,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { HashingService } from '../hashing/hashing.service';
-import { SignUpDto } from './dto/sign-up.dto';
-import { SignInDto } from './dto/sign-in.dto';
-import { JwtService } from '@nestjs/jwt';
-import jwtConfig from '../config/jwt.config';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import { randomUUID } from 'crypto';
+import { Response } from 'express';
+import { BaseService } from 'src/base/base.service';
+import { User, UserDocument } from 'src/users/schemas/user.schema';
+import { HashingService } from '../../hashing/hashing.service';
+import jwtConfig from '../config/jwt.config';
 import { ActiveUserData } from '../interfaces/active-user-data.interface';
+import { SignInDto } from './dto/sign-in.dto';
+import { OtpAuthService } from './otp-auth.service';
 import {
   InvalidateRefreshTokenError,
   RefreshTokenIdsStorage,
 } from './refresh-token-ids.storage/refresh-token-ids.storage';
-import { randomUUID } from 'crypto';
-import { OtpAuthService } from './otp-auth.service';
-import { Response } from 'express';
-import { InjectModel } from '@nestjs/mongoose';
-import { User, UserDocument } from 'src/users/schemas/user.schema';
-import { Model } from 'mongoose';
 
 @Injectable()
-export class AuthenticationService {
+export class AuthenticationService extends BaseService<UserDocument>(
+  User.name,
+) {
   constructor(
-    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     private readonly hashingService: HashingService,
     private readonly jwtService: JwtService,
     @Inject(jwtConfig.KEY)
     private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
     private readonly refreshTokenIdsStorage: RefreshTokenIdsStorage,
     private readonly otpAuthService: OtpAuthService,
-  ) {}
-
-  async signUp(signUpDto: SignUpDto) {
-    try {
-      const user = new this.userModel({
-        email: signUpDto.email,
-        password: await this.hashingService.hash(signUpDto.password),
-      });
-      await user.save();
-    } catch (e) {
-      if (e.code === 11000) {
-        throw new ConflictException('User already exists');
-      }
-      throw e;
-    }
+  ) {
+    super();
   }
 
   async signIn(signInDto: SignInDto, response: Response) {
-    const user = await this.userModel
+    const user = await this.model
       .findOne({ email: signInDto.email })
       .populate('role')
       .populate('permission')
@@ -96,7 +77,7 @@ export class AuthenticationService {
         issuer: this.jwtConfiguration.issuer,
       });
 
-      const user = await this.userModel
+      const user = await this.model
         .findById(sub)
         .populate('role')
         .populate('permission');

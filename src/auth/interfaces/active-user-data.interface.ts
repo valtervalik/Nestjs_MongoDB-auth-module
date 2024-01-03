@@ -1,5 +1,5 @@
-import { Permission } from 'src/permissions/schemas/permission.schema';
-import { Role } from 'src/roles/schemas/role.schema';
+import { Permission } from 'src/users/schemas/permission.schema';
+import { Role } from 'src/users/schemas/role.schema';
 
 export interface ActiveUserData {
   sub: string;

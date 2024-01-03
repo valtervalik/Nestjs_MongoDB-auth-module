@@ -4,16 +4,13 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
 import { Request } from 'express';
-import { ApiKeysService } from '../api-keys.service';
-import {
-  ApiKey,
-  ApiKeyDocument,
-} from 'src/users/api-keys/schemas/api-key.schema';
+import { Model } from 'mongoose';
 import { REQUEST_USER_KEY } from 'src/auth/auth.constants';
 import { ActiveUserData } from 'src/auth/interfaces/active-user-data.interface';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { ApiKey, ApiKeyDocument } from 'src/users/schemas/api-key.schema';
+import { ApiKeysService } from '../api-keys.service';
 
 @Injectable()
 export class ApiKeyGuard implements CanActivate {

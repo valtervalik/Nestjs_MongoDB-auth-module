@@ -6,3 +6,8 @@ services:
     restart: always
     ports:
       - '${REDIS_PORT}:${REDIS_PORT}'
+  mongo:
+    image: mongo
+    restart: always
+    ports:
+      - '${DB_PORT}:${DB_PORT}'
